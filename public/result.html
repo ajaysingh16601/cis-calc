@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Result</title>
+    <!-- Poppins font -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Poppins', sans-serif;
+            background-color: #1e1e2f;
+            color: #f5f5f5;
+            margin: 0;
+            position: relative;
+        }
+
+        .beta-label {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: #00adb5;
+            color: #f5f5f5;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: help;
+        }
+
+        .beta-label:hover::before {
+            content: "This is a BETA Version. It may take some time to fetch hours. Your password is not saved anywhere. See the GitHub source for more information.";
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.85);
+            color: #f5f5f5;
+            padding: 10px;
+            border-radius: 6px;
+            width: 260px;
+            top: -5px;
+            left: calc(100% + 15px);
+            font-size: 14px;
+            white-space: normal;
+            display: none;
+        }
+
+        .beta-label:hover::after {
+            content: "";
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: rgba(0, 0, 0, 0.85);
+            transform: rotate(45deg);
+            top: 50%;
+            right: -5px;
+            margin-top: -5px;
+            display: none;
+        }
+
+        .beta-label:hover::before,
+        .beta-label:hover::after {
+            display: block;
+        }
+
+        .resultContainer {
+            text-align: center;
+            padding: 25px;
+            width: 400px;
+            background-color: #2e2e3e;
+            border-radius: 10px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .resultContainer h2 {
+            margin-bottom: 20px;
+            color: #00adb5;
+        }
+
+        .resultContainer p {
+            font-size: 18px;
+            line-height: 1.6;
+            color: #f5f5f5;
+        }
+
+        .resultContainer a {
+            color: #00adb5;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 20px;
+            transition: color 0.3s;
+        }
+
+        .resultContainer a:hover {
+            color: #007f87;
+        }
+
+        .resultContainer a span {
+            margin-right: 8px;
+        }
+
+        /* GitHub link styles */
+        .github-link {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            text-align: right;
+        }
+
+        .github-link a {
+            color: #00adb5;
+            text-decoration: none;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .github-link a:hover {
+            color: #007f87;
+        }
+
+        p {
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <!-- <div class="beta-label">BETA Version</div> -->
+    <div class="resultContainer">
+        <h2>Result</h2>
+        <p id="over"></p>
+        <p id="short"></p>
+        <a href="/">
+            <span class="material-icons">Logout</span>
+        </a>
+    </div>
+    <script>
+        // This script will run when the page loads and fetch data from the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        document.getElementById('over').innerText += urlParams.get('over');
+        document.getElementById('short').innerText += urlParams.get('short');
+    </script>
+</body>
+</html>

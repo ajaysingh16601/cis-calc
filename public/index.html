@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Welcome to CIS Hours Calculator</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Poppins', sans-serif;
+            background-color: #1e1e2f;
+            color: #f5f5f5;
+            margin: 0;
+            flex-direction: column;
+        }
+
+        .beta-label {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: #00adb5;
+            color: #f5f5f5;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: help;
+        }
+
+        .beta-label:hover::before {
+            content: "This is a BETA Version. It may take some time to fetch hours. Your password is not saved anywhere. See the GitHub source for more information.";
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.85);
+            color: #f5f5f5;
+            padding: 10px;
+            border-radius: 6px;
+            width: 260px;
+            top: -5px;
+            left: calc(100% + 15px);
+            font-size: 14px;
+            white-space: normal;
+            display: none;
+        }
+
+        .beta-label:hover::after {
+            content: "";
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: rgba(0, 0, 0, 0.85);
+            transform: rotate(45deg);
+            top: 50%;
+            right: -5px;
+            margin-top: -5px;
+            display: none;
+        }
+
+        .beta-label:hover::before,
+        .beta-label:hover::after {
+            display: block;
+        }
+
+        .formContainer {
+            width: 360px;
+            padding: 25px;
+            border-radius: 10px;
+            background-color: #2e2e3e;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .formContainer h2 {
+            text-align: left;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: left;
+            gap: 10px;
+            color: #00adb5;
+        }
+
+        .formContainer form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .formContainer form label {
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: #f5f5f5;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .formContainer form input {
+            height: 40px;
+            padding: 8px;
+            font-size: 16px;
+            border: none;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            box-sizing: border-box;
+            background-color: #3f3f4f;
+            color: #f5f5f5;
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+
+        .formContainer form input:focus {
+            background-color: #4f4f5f;
+            box-shadow: 0 0 8px rgba(0, 173, 181, 0.5);
+            outline: none;
+        }
+
+        .formContainer form input[type="submit"] {
+            background-color: #00adb5;
+            color: #f5f5f5;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            border: none;
+            position: relative;
+        }
+
+        .formContainer form input[type="submit"]:hover {
+            background-color: #007f87;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 10px;
+            z-index: 10;
+            display: none;
+        }
+
+        .loading-spinner {
+            border: 5px solid rgba(245, 245, 245, 0.3);
+            border-top: 5px solid #00adb5;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #resultContainer {
+            display: none;
+        }
+
+        #resultContainer.visible {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="formContainer" id="formContainer">
+        <form id="loginForm" method="post" action="/submit" onsubmit="handleSubmit(event)">
+            <input type="text" placeholder="email" id="email" name="email" required><br><br>
+            <input type="password" placeholder="password" id="password" name="password" required><br><br>
+            <input type="submit" value="Calculate">
+            <!-- Loading overlay -->
+            <div class="loading-overlay" id="loadingOverlay">
+                <div class="loading-spinner"></div>
+            </div>
+        </form>
+    </div>
+
+    <div id="resultContainer">
+        <h2>Result</h2>
+        <p id="over"></p>
+        <p id="short"></p>
+        <button onclick="resetForm()">
+            <span class="material-icons">refresh</span> Reset Form
+        </button>
+    </div>
+
+    <script>
+        async function handleSubmit(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            const email = formData.get('email');
+            const password = formData.get('password');
+
+            // Show loading overlay
+            document.getElementById('loadingOverlay').style.display = 'flex';
+
+            try {
+                const response = await fetch('/submit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch data');
+                }
+
+                const result = await response.json();
+                displayResult(result);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                // Handle error display or logging here
+            } finally {
+                // Hide loading overlay regardless of success or failure
+                document.getElementById('loadingOverlay').style.display = 'none';
+            }
+        }
+
+        function displayResult(result) {
+            const overElement = document.getElementById('over');
+            const shortElement = document.getElementById('short');
+
+            if (overElement && shortElement) {
+                overElement.textContent = result.over;
+                shortElement.textContent = result.short;
+
+                // Show result container and hide form
+                document.getElementById('formContainer').style.display = 'none';
+                document.getElementById('resultContainer').classList.add('visible');
+            } else {
+                console.error('Result elements not found');
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('loginForm').reset();
+            document.getElementById('formContainer').style.display = 'block';
+            document.getElementById('resultContainer').classList.remove('visible');
+        }
+    </script>
+</body>
+</html>
