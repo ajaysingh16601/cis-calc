@@ -36,29 +36,6 @@ app.post('/submit', async (req, res) => {
     }
 });
 
-// app.post('/submit', async (req, res) => {
-//     const { email, password } = req.body;
-//     console.log('Email:', email);
-//     console.log('Password:', password);
-
-//     try {
-//         const result = await runPyppeteer(email, password);
-//         console.log('result:', result);
-
-//         if (result) {
-//             const over = encodeURIComponent(result[0]);
-//             const short = encodeURIComponent(result[1]);
-//             res.redirect(`/result.html?over=${over}&short=${short}`);
-//         } else {
-//             res.redirect(`/result.html?over=Invalid%20Credentials&short=`);
-//         }
-//     } catch (error) {
-//         console.error('Error during /submit POST route:', error);
-//         res.status(500).send('Internal Server Error');
-//     }
-// });
-
-
 
 async function runPyppeteer(email, password) {
     const browser = await puppeteer.launch({
@@ -82,6 +59,17 @@ async function runPyppeteer(email, password) {
             page.click('input.submit-login'),
             page.waitForNavigation({ waitUntil: 'networkidle0' })
         ]);
+        // Check for successful login by looking for an element that is only present after login
+        const isLoggedIn = await page.evaluate(() => {
+            // Replace 'elementSelector' with a selector for an element that is only present after successful login
+            return !!document.querySelector('elementSelector');
+        });
+
+        if (!isLoggedIn) {
+            // If not logged in successfully, return early
+            console.log('Login failed');
+            return false;
+        }
 
         // Navigate to timesheet
         await page.goto(COMPTIMESHEETURL);

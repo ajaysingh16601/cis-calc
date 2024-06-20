@@ -162,6 +162,14 @@
         #resultContainer.visible {
             display: block;
         }
+        #invalid_credential {
+            color: red;
+            margin-top: 10px;
+            display: none;
+            text-align: center; /* Center the text */
+            width: 100%; /* Ensure the div takes the full width of the parent */
+        }
+
     </style>
 </head>
 <body>
@@ -174,6 +182,7 @@
             <div class="loading-overlay" id="loadingOverlay">
                 <div class="loading-spinner"></div>
             </div>
+            <div id="invalid_credential"></div>
         </form>
     </div>
 
@@ -182,44 +191,53 @@
         <p id="over"></p>
         <p id="short"></p>
         <button onclick="resetForm()">
-            <span class="material-icons">refresh</span> Reset Form
+            <span class="material-icons">logout</span> Reset Form
         </button>
     </div>
 
     <script>
-        async function handleSubmit(event) {
-            event.preventDefault();
-            const form = event.target;
-            const formData = new FormData(form);
-            const email = formData.get('email');
-            const password = formData.get('password');
+    async function handleSubmit(event) {
+        event.preventDefault();
+        const form = event.target;
+        const formData = new FormData(form);
+        const email = formData.get('email');
+        const password = formData.get('password');
 
-            // Show loading overlay
-            document.getElementById('loadingOverlay').style.display = 'flex';
+        // Show loading overlay
+        document.getElementById('loadingOverlay').style.display = 'flex';
+        const invalidCredential = document.getElementById('invalid_credential');
+        invalidCredential.style.display = 'none'; // Hide previous error messages
 
-            try {
-                const response = await fetch('/submit', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`
-                });
+        try {
+            const response = await fetch('/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`
+            });
 
-                if (!response.ok) {
+            if (!response.ok) {
+                if (response.status === 400) {
+                    const errorResult = await response.json();
+                    invalidCredential.textContent = errorResult.error || 'Invalid credentials';
+                    invalidCredential.style.display = 'block';
+                } else {
                     throw new Error('Failed to fetch data');
                 }
-
+            } else {
                 const result = await response.json();
                 displayResult(result);
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                // Handle error display or logging here
-            } finally {
-                // Hide loading overlay regardless of success or failure
-                document.getElementById('loadingOverlay').style.display = 'none';
             }
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            invalidCredential.textContent = 'An unexpected error occurred.';
+            invalidCredential.style.display = 'block';
+        } finally {
+            // Hide loading overlay regardless of success or failure
+            document.getElementById('loadingOverlay').style.display = 'none';
         }
+    }
 
         function displayResult(result) {
             const overElement = document.getElementById('over');
@@ -241,6 +259,7 @@
             document.getElementById('loginForm').reset();
             document.getElementById('formContainer').style.display = 'block';
             document.getElementById('resultContainer').classList.remove('visible');
+            document.getElementById('invalid_credential').style.display = 'none'; // Hide error message on reset
         }
     </script>
 </body>
